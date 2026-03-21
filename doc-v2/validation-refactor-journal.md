@@ -5476,6 +5476,33 @@ Adicionar no app do aluno e no app do professor uma aba `Graduacoes` dentro do p
 
 - nao houve dado temporario para cleanup nesta rodada.
 
+## Refinamento Posterior 27 - Dominio do SaaS tratado como superficie de plataforma
+
+### Escopo
+
+- a rodada ficou restrita a resolucao de host da landing publica do SaaS em `ligadojo.com.br`;
+- o objetivo foi corrigir o erro em que o dominio institucional estava sendo interpretado como academia inexistente, em vez de carregar a landing da plataforma.
+
+### O que foi ajustado
+
+- a lista de `platform hosts` deixou de ser limitada a `localhost` e `127.0.0.1`;
+- `ligadojo.com.br` e `www.ligadojo.com.br` passaram a ser tratados como hosts canônicos da plataforma;
+- a configuracao tambem passou a aceitar hosts extras via `PLATFORM_HOSTS`, permitindo evolucao sem hardcode adicional espalhado pelo projeto;
+- o ajuste ficou centralizado no resolvedor estrutural de tenancy, sem gambiarra na pagina inicial nem condicao especial na landing.
+
+### Arquivo principal
+
+- [`config.ts`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/lib/tenancy/config.ts)
+
+### Validacao
+
+- `./node_modules/.bin/tsc --noEmit --incremental false`: passou
+- validacao de regra: `ligadojo.com.br` e `www.ligadojo.com.br` entram no conjunto de `platform hosts`
+
+### Cleanup
+
+- nao houve dado temporario para cleanup nesta rodada.
+
 ## Refinamento Posterior 24 - Landing do SaaS alinhada ao layout de referencia
 
 ### O que foi implementado
