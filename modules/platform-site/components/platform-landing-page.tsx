@@ -42,8 +42,6 @@ import {
 import Link from "next/link"
 import NextImage from "next/image"
 import { routes } from "@/lib/routes"
-import marketingPreviewGreen from "../../../reference-ui/layout-ui/Gemini_Generated_Image_ftqb0kftqb0kftqb.png"
-import marketingPreviewOrange from "../../../reference-ui/layout-ui/Gemini_Generated_Image_2cyl2e2cyl2e2cyl.png"
 
 function LandingContainer({
   children,
@@ -1036,7 +1034,7 @@ export function PlatformLandingPage() {
                   <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     <div className="relative aspect-square overflow-hidden rounded-lg border border-zinc-700/70 bg-zinc-900">
                       <NextImage
-                        src={marketingPreviewGreen}
+                        src="/landing/marketing-preview-green.png"
                         alt="Exemplo de criativo gerado para marketing da academia"
                         fill
                         className="object-cover"
@@ -1045,7 +1043,7 @@ export function PlatformLandingPage() {
                     </div>
                     <div className="relative aspect-square overflow-hidden rounded-lg border border-zinc-700/70 bg-zinc-900">
                       <NextImage
-                        src={marketingPreviewOrange}
+                        src="/landing/marketing-preview-orange.png"
                         alt="Segundo exemplo de criativo gerado para marketing da academia"
                         fill
                         className="object-cover"
