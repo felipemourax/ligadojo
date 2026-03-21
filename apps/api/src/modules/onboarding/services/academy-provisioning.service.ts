@@ -5,6 +5,7 @@ import { toUserEntity } from "@/apps/api/src/modules/iam/domain/user-mappers"
 import { createSeededModalityTemplates } from "@/apps/api/src/modules/onboarding/domain/academy-modality-seeds"
 import { toTenantDomainEntity, toTenantEntity } from "@/apps/api/src/modules/tenancy/domain/tenant-mappers"
 import { AcademySelfServiceOnboardingError } from "@/apps/api/src/modules/onboarding/services/academy-owner-resolution.service"
+import { buildManagedTenantDomain } from "@/lib/tenancy/config"
 
 function slugify(value: string) {
   return value
@@ -174,7 +175,7 @@ export class AcademyProvisioningService {
           const domain = await tx.tenantDomain.create({
             data: {
               tenantId: tenant.id,
-              domain: `${slug}.localhost`,
+              domain: buildManagedTenantDomain(slug),
               isPrimary: true,
               isVerified: false,
             },

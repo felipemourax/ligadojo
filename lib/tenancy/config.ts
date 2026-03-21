@@ -29,11 +29,29 @@ const DEFAULT_PLATFORM_HOSTS = [
   "www.ligadojo.com.br",
 ]
 
+export const PLATFORM_ROOT_DOMAIN = normalizeHostEntry(
+  process.env.PLATFORM_ROOT_DOMAIN || "ligadojo.com.br"
+)
+
 export const PLATFORM_HOSTS = new Set(
   [...DEFAULT_PLATFORM_HOSTS, ...parsePlatformHosts(process.env.PLATFORM_HOSTS)].map((host) =>
     normalizeHostEntry(host)
   )
 )
+
+export function buildManagedTenantDomain(tenantSlug: string): string {
+  const normalizedSlug = tenantSlug.trim().toLowerCase()
+
+  if (!normalizedSlug) {
+    return PLATFORM_ROOT_DOMAIN
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return `${normalizedSlug}.localhost`
+  }
+
+  return `${normalizedSlug}.${PLATFORM_ROOT_DOMAIN}`
+}
 
 export const TENANCY_HEADERS = {
   kind: "x-tenant-kind",

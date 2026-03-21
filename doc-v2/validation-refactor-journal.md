@@ -5503,6 +5503,39 @@ Adicionar no app do aluno e no app do professor uma aba `Graduacoes` dentro do p
 
 - nao houve dado temporario para cleanup nesta rodada.
 
+## Refinamento Posterior 28 - Base estrutural para tenants em `*.ligadojo.com.br`
+
+### Escopo
+
+- a rodada ficou restrita ao modelo de tenancy em producao;
+- o objetivo foi preparar a plataforma para operar com `ligadojo.com.br` como host raiz do SaaS e `slug.ligadojo.com.br` como dominio padrao das academias.
+
+### O que foi ajustado
+
+- foi introduzido `PLATFORM_ROOT_DOMAIN` como dominio raiz canônico da plataforma;
+- o helper de tenancy passou a expor `buildManagedTenantDomain`, mantendo `slug.localhost` em desenvolvimento e gerando `slug.ligadojo.com.br` em producao;
+- o onboarding da academia deixou de gravar `tenantDomain` padrao como `slug.localhost` em producao;
+- a documentacao de estrutura passou a refletir explicitamente o modelo:
+  - `ligadojo.com.br` = plataforma;
+  - `slug.ligadojo.com.br` = tenant;
+- o `.env.example` passou a expor as variaveis de configuracao do dominio raiz da plataforma.
+
+### Arquivos principais
+
+- [`config.ts`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/lib/tenancy/config.ts)
+- [`academy-provisioning.service.ts`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/apps/api/src/modules/onboarding/services/academy-provisioning.service.ts)
+- [`.env.example`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/.env.example)
+- [`project-structure.md`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/doc-v2/project-structure.md)
+
+### Validacao
+
+- `./node_modules/.bin/tsc --noEmit --incremental false`: passou
+- consulta em producao confirmou que o tenant atual ainda estava em `jiu-jitea-salvador.localhost`, evidenciando a necessidade de migracao dos dados existentes para o novo padrao gerenciado.
+
+### Cleanup
+
+- nao houve dado temporario para cleanup nesta rodada.
+
 ## Refinamento Posterior 24 - Landing do SaaS alinhada ao layout de referencia
 
 ### O que foi implementado

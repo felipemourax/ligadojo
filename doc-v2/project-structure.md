@@ -229,8 +229,10 @@ Estado alvo:
 
 - `/dashboard/*` e uma superficie exclusiva de `academy_admin`.
 - `/app/teacher/*` e `/app/student/*` exigem host de tenant e membership ativa naquele tenant.
-- no host da plataforma (`localhost:3000`), a home `/` para visitante nao autenticado deve renderizar a landing publica do SaaS;
-- no host da plataforma (`localhost:3000` / superficie principal), usuarios autenticados que nao sao `platform_admin` devem passar primeiro pela selecao de contexto em `/access`.
+- no host da plataforma local (`localhost:3000`), a home `/` para visitante nao autenticado deve renderizar a landing publica do SaaS;
+- em producao, o host raiz da plataforma deve ser `ligadojo.com.br` e os tenants devem usar o padrao `slug.ligadojo.com.br`;
+- o dominio raiz da plataforma e configuravel por `PLATFORM_ROOT_DOMAIN`, e os hosts publicos da plataforma podem ser complementados via `PLATFORM_HOSTS`;
+- no host da plataforma (`localhost:3000` / `ligadojo.com.br`), usuarios autenticados que nao sao `platform_admin` devem passar primeiro pela selecao de contexto em `/access`.
 - a tela `/access` deve listar:
   - academias onde o usuario entra como `teacher` ou `student`;
   - academias onde o usuario entra como `academy_admin`;
