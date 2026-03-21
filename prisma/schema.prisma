@@ -1,0 +1,1346 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                    String               @id @default(cuid())
+  email                 String               @unique
+  cpfNormalized         String?              @unique
+  phone                 String?
+  name                  String?
+  firstName             String?
+  lastName              String?
+  birthDate             DateTime?
+  zipCode               String?
+  street                String?
+  city                  String?
+  state                 String?
+  emergencyContact      String?
+  status                UserStatus           @default(ACTIVE)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  authIdentities        AuthIdentity[]
+  passwordCredential    PasswordCredential?
+  passwordResetTokens   PasswordResetToken[]
+  memberships           AcademyMembership[]
+  acceptedInvitations   Invitation[]         @relation("AcceptedInvitationUser")
+  enrollmentRequests    EnrollmentRequest[]
+  sessions              UserSession[]
+  subscriptions         Subscription[]
+  subscriptionPlanChanges SubscriptionPlanChange[]
+  financeRecurringSetups FinanceRecurringSetup[]
+  financeCreditBalances FinanceCreditBalance[]
+  teacherProfiles       TeacherProfile[]
+  studentProfiles       StudentProfile[]
+  financeCharges        FinanceCharge[]
+  createdFinanceCoupons FinanceCoupon[]      @relation("CreatedFinanceCouponUser")
+  eventParticipants     EventParticipant[]
+  graduationEligibilityOverrideAudits GraduationEligibilityOverrideAudit[]
+}
+
+model Tenant {
+  id                   String                 @id @default(cuid())
+  slug                 String                 @unique
+  legalName            String
+  displayName          String
+  status               TenantStatus           @default(ACTIVE)
+  brandingJson         Json?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  domains              TenantDomain[]
+  memberships          AcademyMembership[]
+  invitations          Invitation[]
+  enrollmentRequests   EnrollmentRequest[]
+  onboarding           TenantOnboarding?
+  profile              TenantProfile?
+  location             TenantLocation?
+  modalities           Modality[]
+  teacherProfiles      TeacherProfile[]
+  classGroups          ClassGroup[]
+  classSessions        ClassSession[]
+  branding             TenantBranding?
+  paymentSettings      TenantPaymentSettings?
+  plans                Plan[]
+  subscriptions        Subscription[]
+  subscriptionPlanChanges SubscriptionPlanChange[]
+  financeRecurringSetups FinanceRecurringSetup[]
+  studentProfiles      StudentProfile[]
+  financeCreditBalances FinanceCreditBalance[]
+  financeCoupons       FinanceCoupon[]
+  graduationTracks     GraduationTrack[]
+  graduationExams      GraduationExam[]
+  financeCharges       FinanceCharge[]
+  events               Event[]
+  eventParticipants    EventParticipant[]
+  site                 TenantSite?
+  leads                Lead[]
+  marketingBrandKit    MarketingBrandKit?
+  marketingAssets      MarketingAsset[]
+  marketingGenerations MarketingGeneration[]
+  marketingUsageLedger MarketingUsageLedger[]
+  marketingAiSettings  MarketingAiSettings?
+  athleteTitles        AthleteTitle[]
+  graduationEligibilityOverrideAudits GraduationEligibilityOverrideAudit[]
+}
+
+model TenantDomain {
+  id         String   @id @default(cuid())
+  tenantId   String
+  domain     String   @unique
+  isPrimary  Boolean  @default(false)
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model AcademyMembership {
+  id             String           @id @default(cuid())
+  userId         String
+  tenantId       String
+  role           AcademyRole
+  status         MembershipStatus @default(PENDING)
+  invitedByName  String?
+  acceptedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacherProfile TeacherProfile?
+  studentProfile StudentProfile?
+
+  @@unique([userId, tenantId])
+  @@index([tenantId, role])
+  @@index([userId, status])
+}
+
+model Invitation {
+  id            String           @id @default(cuid())
+  tenantId      String
+  email         String
+  role          AcademyRole
+  token         String           @unique
+  status        InvitationStatus @default(PENDING)
+  invitedByName String
+  acceptedById  String?
+  expiresAt     DateTime
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  acceptedBy    User?            @relation("AcceptedInvitationUser", fields: [acceptedById], references: [id])
+
+  @@index([tenantId, email])
+  @@index([tenantId, status])
+}
+
+model EnrollmentRequest {
+  id                   String                  @id @default(cuid())
+  tenantId             String
+  userId               String
+  requestedRole        AcademyRole             @default(STUDENT)
+  teacherRoleTitle     String?
+  requestedActivityCategories String[]         @default([])
+  requestedModalityIds String[]                @default([])
+  status               EnrollmentRequestStatus @default(PENDING)
+  createdAt            DateTime                @default(now())
+  reviewedAt           DateTime?
+  updatedAt            DateTime                @updatedAt
+  tenant               Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                 User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([tenantId, status])
+}
+
+model Plan {
+  id              String             @id @default(cuid())
+  tenantId        String
+  name            String
+  amountCents     Int
+  billingCycle    BillingCycle
+  weeklyFrequency Int?
+  classLimitKind  PlanClassLimitKind @default(UNLIMITED)
+  classLimitValue Int?
+  sortOrder       Int                @default(0)
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscriptions   Subscription[]
+  subscriptionPlanChangesFrom SubscriptionPlanChange[] @relation("SubscriptionPlanChangeFromPlan")
+  subscriptionPlanChangesTo   SubscriptionPlanChange[] @relation("SubscriptionPlanChangeToPlan")
+  modalities      PlanModality[]
+  financeCharges  FinanceCharge[]
+  financeCoupons  FinanceCoupon[]
+  financeRecurringSetups FinanceRecurringSetup[]
+
+  @@index([tenantId, isActive])
+}
+
+model PlanModality {
+  id         String   @id @default(cuid())
+  planId     String
+  modalityId String
+  createdAt  DateTime @default(now())
+  plan       Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  modality   Modality @relation(fields: [modalityId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, modalityId])
+  @@index([modalityId])
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  tenantId       String
+  userId         String
+  planId         String
+  status         SubscriptionStatus @default(PENDING)
+  startDate      DateTime
+  billingDay     Int                @default(5)
+  endDate        DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  tenant         Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan           Plan               @relation(fields: [planId], references: [id], onDelete: Restrict)
+  financeCharges FinanceCharge[]
+  planChanges    SubscriptionPlanChange[]
+
+  @@index([tenantId, userId])
+  @@index([tenantId, status])
+}
+
+model StudentProfile {
+  id                String                 @id @default(cuid())
+  tenantId          String
+  userId            String
+  membershipId      String?                @unique
+  emergencyContact  String?
+  notes             String?
+  status            StudentProfileStatus   @default(ACTIVE)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  tenant            Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membership        AcademyMembership?     @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  activities        StudentActivity[]
+  modalities        StudentModality[]
+  classEnrollments  ClassGroupEnrollment[]
+  financeRecurringSetups FinanceRecurringSetup[]
+  financeCreditBalance  FinanceCreditBalance?
+  financeCharges    FinanceCharge[]
+  eventParticipants EventParticipant[]
+  athleteTitles     AthleteTitle[]
+
+  @@unique([tenantId, userId])
+  @@index([tenantId, status])
+}
+
+model StudentActivity {
+  id                         String                     @id @default(cuid())
+  studentProfileId           String
+  activityCategory           String?
+  belt                       String
+  stripes                    Int                        @default(0)
+  graduationEligibleOverride Boolean?
+  startDate                  DateTime
+  notes                      String?
+  status                     StudentActivityStatus      @default(ACTIVE)
+  createdAt                  DateTime                   @default(now())
+  updatedAt                  DateTime                   @updatedAt
+  studentProfile             StudentProfile             @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  modalities                 StudentModality[]
+  graduations                StudentGraduation[]
+  examCandidates             GraduationExamCandidate[]
+  eligibilityOverrideAudits  GraduationEligibilityOverrideAudit[]
+
+  @@unique([studentProfileId, activityCategory])
+  @@index([activityCategory, status])
+}
+
+model SubscriptionPlanChange {
+  id             String                       @id @default(cuid())
+  tenantId       String
+  userId         String
+  subscriptionId String
+  fromPlanId     String
+  toPlanId       String
+  transitionPolicy PlanTransitionPolicy
+  chargeHandling PlanTransitionChargeHandling
+  effectiveDate  DateTime
+  status         SubscriptionPlanChangeStatus @default(PENDING)
+  requestedAt    DateTime                     @default(now())
+  appliedAt      DateTime?
+  updatedAt      DateTime                     @updatedAt
+  tenant         Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user           User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription   Subscription                 @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  fromPlan       Plan                         @relation("SubscriptionPlanChangeFromPlan", fields: [fromPlanId], references: [id], onDelete: Restrict)
+  toPlan         Plan                         @relation("SubscriptionPlanChangeToPlan", fields: [toPlanId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, status, effectiveDate])
+  @@index([tenantId, userId, status])
+  @@index([subscriptionId, status])
+}
+
+model FinanceCreditBalance {
+  id              String         @id @default(cuid())
+  tenantId        String
+  userId          String
+  studentProfileId String?       @unique
+  balanceCents    Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentProfile  StudentProfile? @relation(fields: [studentProfileId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, userId])
+  @@index([tenantId, balanceCents])
+}
+
+model FinanceCharge {
+  id                  String                 @id @default(cuid())
+  tenantId            String
+  userId              String
+  studentProfileId    String?
+  subscriptionId      String?
+  recurringSetupId    String?
+  planId              String?
+  externalKey         String?                @unique
+  description         String
+  category            String
+  amountCents         Int
+  originalAmountCents Int?
+  discountAmountCents Int                    @default(0)
+  discountSource      FinanceDiscountSource?
+  discountReason      String?
+  dueDate             DateTime
+  paidAt              DateTime?
+  status              FinanceChargeStatus    @default(PENDING)
+  paymentMethod       FinancePaymentMethod?
+  notes               String?
+  couponId            String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  tenant              Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentProfile      StudentProfile?        @relation(fields: [studentProfileId], references: [id], onDelete: SetNull)
+  subscription        Subscription?          @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  recurringSetup      FinanceRecurringSetup? @relation(fields: [recurringSetupId], references: [id], onDelete: SetNull)
+  plan                Plan?                  @relation(fields: [planId], references: [id], onDelete: SetNull)
+  coupon              FinanceCoupon?         @relation(fields: [couponId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status])
+  @@index([tenantId, dueDate])
+  @@index([userId, dueDate])
+  @@index([couponId])
+}
+
+model FinanceRecurringSetup {
+  id               String                     @id @default(cuid())
+  tenantId         String
+  userId           String
+  studentProfileId String?
+  planId           String?
+  source           FinanceRecurringSetupSource
+  description      String
+  category         String
+  amountCents      Int
+  billingCycle     BillingCycle
+  billingDay       Int
+  startDate        DateTime
+  isActive         Boolean                    @default(true)
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+  tenant           Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user             User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentProfile   StudentProfile?            @relation(fields: [studentProfileId], references: [id], onDelete: SetNull)
+  plan             Plan?                      @relation(fields: [planId], references: [id], onDelete: SetNull)
+  financeCharges   FinanceCharge[]
+
+  @@index([tenantId, isActive])
+  @@index([userId, isActive])
+  @@index([studentProfileId, isActive])
+  @@index([planId])
+}
+
+model FinanceCoupon {
+  id              String              @id @default(cuid())
+  tenantId        String
+  code            String
+  title           String
+  description     String?
+  discountType    FinanceDiscountType
+  amountCents     Int?
+  percentageOff   Int?
+  appliesToPlanId String?
+  isActive        Boolean             @default(true)
+  startsAt        DateTime?
+  endsAt          DateTime?
+  maxRedemptions  Int?
+  redemptionCount Int                 @default(0)
+  createdByUserId String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan            Plan?               @relation(fields: [appliesToPlanId], references: [id], onDelete: SetNull)
+  createdByUser   User?               @relation("CreatedFinanceCouponUser", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  financeCharges  FinanceCharge[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId, isActive])
+  @@index([appliesToPlanId])
+}
+
+model StudentModality {
+  id                         String                    @id @default(cuid())
+  studentProfileId           String
+  studentActivityId          String?
+  modalityId                 String
+  belt                       String
+  stripes                    Int                       @default(0)
+  graduationEligibleOverride Boolean?
+  startDate                  DateTime
+  notes                      String?
+  status                     StudentModalityStatus     @default(ACTIVE)
+  createdAt                  DateTime                  @default(now())
+  updatedAt                  DateTime                  @updatedAt
+  studentProfile             StudentProfile            @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  studentActivity            StudentActivity?          @relation(fields: [studentActivityId], references: [id], onDelete: SetNull)
+  modality                   Modality                  @relation(fields: [modalityId], references: [id], onDelete: Cascade)
+
+  @@unique([studentProfileId, modalityId])
+  @@index([modalityId, status])
+  @@index([studentActivityId])
+}
+
+model GraduationEligibilityOverrideAudit {
+  id                   String          @id @default(cuid())
+  tenantId             String
+  studentActivityId    String
+  actorUserId          String?
+  actorName            String?
+  actorRole            AcademyRole
+  eligibleOverrideValue Boolean
+  createdAt            DateTime        @default(now())
+  tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  studentActivity      StudentActivity @relation(fields: [studentActivityId], references: [id], onDelete: Cascade)
+  actorUser            User?           @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([studentActivityId, createdAt])
+  @@index([actorUserId])
+}
+
+model StudentGraduation {
+  id                String          @id @default(cuid())
+  studentActivityId String
+  fromBelt          String?
+  fromStripes       Int?
+  toBelt            String
+  toStripes         Int             @default(0)
+  evaluatorName     String
+  graduatedAt       DateTime
+  notes             String?
+  createdAt         DateTime        @default(now())
+  studentActivity   StudentActivity @relation(fields: [studentActivityId], references: [id], onDelete: Cascade)
+
+  @@index([studentActivityId, graduatedAt])
+}
+
+model GraduationTrack {
+  id          String                @id @default(cuid())
+  tenantId    String
+  modalityId  String?
+  name        String
+  branch      GraduationTrackBranch
+  progression GraduationProgression @default(BELT)
+  sortOrder   Int                   @default(0)
+  isDefault   Boolean               @default(false)
+  isActive    Boolean               @default(true)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  tenant      Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  modality    Modality?             @relation(fields: [modalityId], references: [id], onDelete: SetNull)
+  levels      GraduationLevel[]
+  exams       GraduationExam[]
+
+  @@unique([tenantId, modalityId, name, branch, progression])
+  @@index([tenantId, sortOrder])
+  @@index([tenantId, modalityId])
+}
+
+model GraduationLevel {
+  id            String          @id @default(cuid())
+  trackId       String
+  name          String
+  colorHex      String
+  stripes       Int             @default(0)
+  minTimeMonths Int?
+  sortOrder     Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  track         GraduationTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@index([trackId, sortOrder])
+}
+
+model GraduationExam {
+  id             String                    @id @default(cuid())
+  tenantId       String
+  trackId        String
+  modalityId     String?
+  title          String
+  examDate       DateTime
+  location       String?
+  evaluatorName  String?
+  evaluatorNames String[]                  @default([])
+  trackIds       String[]                  @default([])
+  allTracks      Boolean                   @default(false)
+  allEvaluators  Boolean                   @default(false)
+  notes          String?
+  status         GraduationExamStatus      @default(SCHEDULED)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  tenant         Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  track          GraduationTrack           @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  modality       Modality?                 @relation(fields: [modalityId], references: [id], onDelete: SetNull)
+  candidates     GraduationExamCandidate[]
+
+  @@index([tenantId, examDate])
+  @@index([trackId, examDate])
+}
+
+model GraduationExamCandidate {
+  id                String          @id @default(cuid())
+  examId            String
+  studentActivityId String
+  fromBelt          String?
+  fromStripes       Int?            @default(0)
+  toBelt            String?
+  toStripes         Int             @default(0)
+  attendanceRate    Int             @default(0)
+  techniquesScore   Int?
+  behavior          String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  exam              GraduationExam  @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentActivity   StudentActivity @relation(fields: [studentActivityId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, studentActivityId])
+  @@index([studentActivityId])
+}
+
+model AuthIdentity {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String
+  providerSubjectId String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerSubjectId])
+  @@index([userId])
+}
+
+model PasswordCredential {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  passwordHash String
+  passwordSalt String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSession {
+  id               String   @id @default(cuid())
+  userId           String
+  sessionTokenHash String   @unique
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model TenantOnboarding {
+  id                 String           @id @default(cuid())
+  tenantId           String           @unique
+  status             OnboardingStatus @default(DRAFT)
+  currentStep        Int              @default(1)
+  completedSteps     String[]         @default([])
+  academyInfoJson    Json?
+  locationJson       Json?
+  classStructureJson Json?
+  teachersSetupJson  Json?
+  plansSetupJson     Json?
+  brandingSetupJson  Json?
+  paymentsSetupJson  Json?
+  completedAt        DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  tenant             Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model TenantProfile {
+  id           String   @id @default(cuid())
+  tenantId     String   @unique
+  phone        String?
+  contactEmail String?
+  description  String?
+  document     String?
+  foundedYear  Int?
+  website      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model TenantLocation {
+  id         String   @id @default(cuid())
+  tenantId   String   @unique
+  zipCode    String?
+  street     String?
+  number     String?
+  complement String?
+  city       String?
+  state      String?
+  country    String   @default("Brasil")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model Modality {
+  id                     String            @id @default(cuid())
+  tenantId               String
+  activityCategory       String?
+  name                   String
+  ageGroups              AgeGroup[]
+  defaultDurationMinutes Int
+  defaultCapacity        Int
+  sortOrder              Int               @default(0)
+  isActive               Boolean           @default(true)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  tenant                 Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planLinks              PlanModality[]
+  classGroups            ClassGroup[]
+  teacherLinks           TeacherModality[]
+  studentLinks           StudentModality[]
+  graduationTracks       GraduationTrack[]
+  graduationExams        GraduationExam[]
+  events                 Event[]
+  leads                  Lead[]
+
+  @@index([tenantId, activityCategory, sortOrder])
+}
+
+model Lead {
+  id                String     @id @default(cuid())
+  tenantId          String
+  modalityId        String?
+  name              String
+  email             String?
+  phone             String
+  source            LeadSource
+  status            LeadStatus @default(NEW)
+  interestLabel     String?
+  notes             String?
+  sourceContext     String?
+  consentAcceptedAt DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  tenant            Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  modality          Modality?  @relation(fields: [modalityId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status])
+  @@index([tenantId, source])
+  @@index([modalityId])
+}
+
+model TeacherProfile {
+  id                  String                     @id @default(cuid())
+  tenantId            String
+  userId              String?
+  membershipId        String?                    @unique
+  name                String
+  email               String?
+  phone               String?
+  rank                String?
+  roleTitle           String?
+  specialty           String?
+  status              TeacherProfileStatus       @default(DRAFT)
+  profileCompleteness TeacherProfileCompleteness @default(PENDING_PAYMENT_DETAILS)
+  sortOrder           Int                        @default(0)
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  tenant              Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                User?                      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  membership          AcademyMembership?         @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  classGroups         ClassGroup[]
+  modalities          TeacherModality[]
+  graduations         TeacherGraduation[]
+  compensation        TeacherCompensation?
+  organizedEvents     Event[]
+  eventParticipants   EventParticipant[]
+  athleteTitles       AthleteTitle[]
+
+  @@index([tenantId, sortOrder])
+  @@index([tenantId, userId])
+}
+
+model AthleteTitle {
+  id               String         @id @default(cuid())
+  tenantId         String
+  studentProfileId String?
+  teacherProfileId String?
+  placement        AthleteTitlePlacement?
+  title            String
+  competition      String
+  year             Int
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  studentProfile   StudentProfile? @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  teacherProfile   TeacherProfile? @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, year])
+  @@index([studentProfileId, year])
+  @@index([teacherProfileId, year])
+}
+
+enum AthleteTitlePlacement {
+  GOLD
+  SILVER
+  BRONZE
+  CHAMPION
+  RUNNER_UP
+}
+
+model TeacherModality {
+  id               String         @id @default(cuid())
+  teacherProfileId String
+  modalityId       String
+  createdAt        DateTime       @default(now())
+  teacherProfile   TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+  modality         Modality       @relation(fields: [modalityId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherProfileId, modalityId])
+  @@index([modalityId])
+}
+
+model TeacherCompensation {
+  id               String                  @id @default(cuid())
+  teacherProfileId String                  @unique
+  type             TeacherCompensationType
+  amountCents      Int
+  bonusDescription String?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  teacherProfile   TeacherProfile          @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+}
+
+model TeacherGraduation {
+  id               String         @id @default(cuid())
+  teacherProfileId String
+  activityCategory String?
+  fromBelt         String?
+  fromStripes      Int?
+  toBelt           String
+  toStripes        Int            @default(0)
+  graduatedAt      DateTime
+  notes            String?
+  createdAt        DateTime       @default(now())
+  teacherProfile   TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+
+  @@index([teacherProfileId, graduatedAt])
+  @@index([activityCategory, graduatedAt])
+}
+
+model ClassGroup {
+  id               String                 @id @default(cuid())
+  tenantId         String
+  modalityId       String?
+  teacherProfileId String?
+  name             String
+  modalityName     String
+  teacherName      String
+  ageGroups        AgeGroup[]
+  beltRange        String
+  maxStudents      Int
+  currentStudents  Int                    @default(0)
+  status           ClassGroupStatus       @default(ACTIVE)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  tenant           Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  modality         Modality?              @relation(fields: [modalityId], references: [id], onDelete: SetNull)
+  teacherProfile   TeacherProfile?        @relation(fields: [teacherProfileId], references: [id], onDelete: SetNull)
+  enrollments      ClassGroupEnrollment[]
+  schedules        ClassSchedule[]
+  sessions         ClassSession[]
+
+  @@index([tenantId, status])
+  @@index([modalityId])
+  @@index([teacherProfileId])
+}
+
+model ClassGroupEnrollment {
+  id               String                     @id @default(cuid())
+  classGroupId     String
+  studentProfileId String
+  status           ClassGroupEnrollmentStatus @default(ACTIVE)
+  joinedAt         DateTime                   @default(now())
+  leftAt           DateTime?
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+  classGroup       ClassGroup                 @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  studentProfile   StudentProfile             @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([classGroupId, studentProfileId])
+  @@index([classGroupId, status])
+  @@index([studentProfileId, status])
+}
+
+model ClassSchedule {
+  id           String     @id @default(cuid())
+  classGroupId String
+  weekday      Int
+  startTime    String
+  endTime      String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  classGroup   ClassGroup @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+
+  @@index([classGroupId, weekday])
+}
+
+model ClassSession {
+  id                    String             @id @default(cuid())
+  tenantId              String
+  classGroupId          String
+  sessionDate           DateTime
+  weekday               Int
+  startTime             String
+  endTime               String
+  status                ClassSessionStatus @default(SCHEDULED)
+  confirmedStudentIds   String[]           @default([])
+  confirmedStudentNames String[]           @default([])
+  presentStudentIds     String[]           @default([])
+  absentStudentIds      String[]           @default([])
+  justifiedStudentIds   String[]           @default([])
+  finalizedAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  tenant                Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  classGroup            ClassGroup         @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([classGroupId, sessionDate])
+  @@index([tenantId, sessionDate])
+}
+
+model Event {
+  id                     String             @id @default(cuid())
+  tenantId               String
+  modalityId             String?
+  teacherProfileId       String?
+  name                   String
+  type                   EventType
+  eventDate              DateTime
+  startTime              String
+  location               String
+  organizerName          String?
+  modalityName           String
+  status                 EventStatus        @default(SCHEDULED)
+  capacity               Int                @default(0)
+  registrationsOpen      Boolean            @default(true)
+  hasRegistrationFee     Boolean            @default(false)
+  registrationFeeCents   Int?
+  registrationFeeDueDays Int?
+  notes                  String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  tenant                 Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  modality               Modality?          @relation(fields: [modalityId], references: [id], onDelete: SetNull)
+  teacherProfile         TeacherProfile?    @relation(fields: [teacherProfileId], references: [id], onDelete: SetNull)
+  participants           EventParticipant[]
+
+  @@index([tenantId, eventDate])
+  @@index([tenantId, status])
+  @@index([modalityId])
+  @@index([teacherProfileId])
+}
+
+model EventParticipant {
+  id               String                 @id @default(cuid())
+  tenantId         String
+  eventId          String
+  userId           String
+  studentProfileId String?
+  teacherProfileId String?
+  nameSnapshot     String
+  role             EventParticipantRole
+  modalityName     String?
+  status           EventParticipantStatus @default(INVITED)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  tenant           Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  event            Event                  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentProfile   StudentProfile?        @relation(fields: [studentProfileId], references: [id], onDelete: SetNull)
+  teacherProfile   TeacherProfile?        @relation(fields: [teacherProfileId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, userId])
+  @@index([tenantId, eventId])
+  @@index([studentProfileId])
+  @@index([teacherProfileId])
+}
+
+model TenantBranding {
+  id             String   @id @default(cuid())
+  tenantId       String   @unique
+  appName        String?
+  logoUrl        String?
+  bannerUrl      String?
+  primaryColor   String?
+  secondaryColor String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model TenantPaymentSettings {
+  id                               String                   @id @default(cuid())
+  tenantId                         String                   @unique
+  pixEnabled                       Boolean                  @default(false)
+  cardEnabled                      Boolean                  @default(false)
+  boletoEnabled                    Boolean                  @default(false)
+  delinquencyGraceDays             Int                      @default(0)
+  delinquencyBlocksNewClasses      Boolean                  @default(false)
+  delinquencyRemovesCurrentClasses Boolean                  @default(false)
+  delinquencyRecurringMode         DelinquencyRecurringMode @default(CONTINUE)
+  delinquencyAccumulatesDebt       Boolean                  @default(true)
+  planTransitionPolicy             PlanTransitionPolicy     @default(NEXT_CYCLE)
+  planTransitionChargeHandling     PlanTransitionChargeHandling @default(CHARGE_DIFFERENCE)
+  gateway                          PaymentGateway?
+  createdAt                        DateTime                 @default(now())
+  updatedAt                        DateTime                 @updatedAt
+  tenant                           Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model TenantSite {
+  id           String     @id @default(cuid())
+  tenantId     String     @unique
+  templateId   String
+  status       SiteStatus @default(DRAFT)
+  seoJson      Json?
+  themeJson    Json?
+  sectionsJson Json?
+  publishedAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model MarketingBrandKit {
+  id                  String                 @id @default(cuid())
+  tenantId            String                 @unique
+  primaryColor        String?
+  secondaryColor      String?
+  accentColor         String?
+  headingFont         String?
+  bodyFont            String?
+  selectedLogoAssetId String?
+  notes               String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  tenant              Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assets              MarketingAsset[]
+  generations         MarketingGeneration[]
+  usageLedgerEntries  MarketingUsageLedger[]
+}
+
+model MarketingAsset {
+  id           String               @id @default(cuid())
+  tenantId     String
+  brandKitId   String?
+  type         MarketingAssetType
+  source       MarketingAssetSource
+  name         String
+  fileUrl      String
+  thumbnailUrl String?
+  mimeType     String?
+  metadataJson Json?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  tenant       Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  brandKit     MarketingBrandKit?   @relation(fields: [brandKitId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, type])
+}
+
+model MarketingGeneration {
+  id               String                    @id @default(cuid())
+  tenantId         String
+  brandKitId       String?
+  templateId       String?
+  status           MarketingGenerationStatus @default(DRAFT)
+  promptInputJson  Json?
+  resultCaption    String?
+  resultImageUrl   String?
+  usedAssetIdsJson Json?
+  provider         String?
+  costEstimateUsd  Decimal?                  @db.Decimal(10, 4)
+  createdByUserId  String?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  tenant           Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  brandKit         MarketingBrandKit?        @relation(fields: [brandKitId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status])
+}
+
+model MarketingUsageLedger {
+  id               String                  @id @default(cuid())
+  tenantId         String
+  brandKitId       String?
+  periodKey        String
+  eventType        MarketingUsageEventType
+  units            Int
+  estimatedCostUsd Decimal?                @db.Decimal(10, 4)
+  metadataJson     Json?
+  createdAt        DateTime                @default(now())
+  tenant           Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  brandKit         MarketingBrandKit?      @relation(fields: [brandKitId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, periodKey, eventType])
+}
+
+model MarketingAiSettings {
+  id                    String              @id @default(cuid())
+  tenantId              String              @unique
+  enabled               Boolean             @default(true)
+  primaryTextProvider   MarketingAiProvider @default(GEMINI)
+  primaryTextModel      String              @default("gemini-2.5-flash")
+  fallbackTextProvider  MarketingAiProvider @default(OPENAI)
+  fallbackTextModel     String              @default("gpt-5-mini")
+  primaryImageProvider  MarketingAiProvider @default(GEMINI)
+  primaryImageModel     String              @default("gemini-2.0-flash-preview-image-generation")
+  fallbackImageProvider MarketingAiProvider @default(OPENAI)
+  fallbackImageModel    String              @default("gpt-image-1")
+  allowTextGeneration   Boolean             @default(true)
+  allowImageGeneration  Boolean             @default(true)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  tenant                Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum AcademyRole {
+  ACADEMY_ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum MembershipStatus {
+  INVITED
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REVOKED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum EnrollmentRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  SEMIANNUAL
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  ENDED
+}
+
+enum OnboardingStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum AgeGroup {
+  KIDS
+  JUVENILE
+  ADULT
+  MIXED
+}
+
+enum TeacherProfileStatus {
+  DRAFT
+  INVITED
+  ACTIVE
+}
+
+enum TeacherProfileCompleteness {
+  PENDING_PAYMENT_DETAILS
+  COMPLETE
+}
+
+enum TeacherCompensationType {
+  FIXED
+  PER_CLASS
+  PERCENTAGE
+}
+
+enum StudentProfileStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum StudentActivityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum StudentModalityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum GraduationTrackBranch {
+  KIDS
+  ADULT
+  MIXED
+}
+
+enum GraduationProgression {
+  BELT
+  SKILL_LEVEL
+}
+
+enum GraduationExamStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum EventType {
+  COMPETITION
+  SEMINAR
+  GRADUATION_EXAM
+  WORKSHOP
+  FESTIVAL
+  SPECIAL_CLASS
+}
+
+enum EventStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum EventParticipantRole {
+  ATHLETE
+  STAFF
+}
+
+enum EventParticipantStatus {
+  INVITED
+  CONFIRMED
+  MAYBE
+  DECLINED
+  PAYMENT_PENDING
+}
+
+enum FinanceChargeStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum FinancePaymentMethod {
+  PIX
+  CARD
+  BOLETO
+  CASH
+}
+
+enum FinanceDiscountType {
+  FIXED_AMOUNT
+  PERCENTAGE
+}
+
+enum FinanceDiscountSource {
+  MANUAL
+  COUPON
+}
+
+enum FinanceRecurringSetupSource {
+  MANUAL_AMOUNT
+  PLAN_LINKED
+}
+
+enum DelinquencyRecurringMode {
+  CONTINUE
+  PAUSE
+}
+
+enum PlanTransitionPolicy {
+  IMMEDIATE
+  NEXT_CYCLE
+  PRORATA
+}
+
+enum PlanTransitionChargeHandling {
+  REPLACE_OPEN_CHARGE
+  CHARGE_DIFFERENCE
+  CONVERT_TO_CREDIT
+}
+
+enum SubscriptionPlanChangeStatus {
+  PENDING
+  APPLIED
+  CANCELLED
+}
+
+enum ClassGroupStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ClassGroupEnrollmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ClassSessionStatus {
+  SCHEDULED
+  CANCELLED
+}
+
+enum PlanClassLimitKind {
+  UNLIMITED
+  WEEKLY
+}
+
+enum PaymentGateway {
+  MERCADO_PAGO
+  ASAAS
+  STRIPE
+}
+
+enum SiteStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum MarketingAssetType {
+  LOGO
+  ACADEMY_PHOTO
+  SPACE_PHOTO
+  TEAM_PHOTO
+  PROFESSOR_PHOTO
+  GENERAL_PHOTO
+}
+
+enum MarketingAssetSource {
+  BRAND_KIT
+  MANUAL_UPLOAD
+  CAMERA
+  GENERATED
+}
+
+enum MarketingGenerationStatus {
+  DRAFT
+  PROCESSING
+  SUCCEEDED
+  FAILED
+}
+
+enum MarketingUsageEventType {
+  TEMPLATE_RENDER
+  CAPTION_GENERATION
+  IMAGE_GENERATION
+  ASSET_PROCESSING
+}
+
+enum MarketingAiProvider {
+  GEMINI
+  OPENAI
+}
+
+enum LeadSource {
+  WEBSITE
+  INSTAGRAM
+  FACEBOOK
+  GOOGLE
+  REFERRAL
+  WALK_IN
+  EVENT
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  TRIAL_SCHEDULED
+  TRIAL_COMPLETED
+  NEGOTIATING
+  CONVERTED
+  LOST
+}

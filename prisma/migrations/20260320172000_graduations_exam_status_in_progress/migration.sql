@@ -1,0 +1,1 @@
+ALTER TYPE "GraduationExamStatus" RENAME VALUE 'DRAFT' TO 'IN_PROGRESS';

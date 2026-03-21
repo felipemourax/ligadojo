@@ -1,0 +1,2 @@
+// Class components
+export {}

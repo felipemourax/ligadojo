@@ -1,0 +1,2 @@
+ALTER TYPE "EventParticipantStatus" RENAME VALUE 'CONFIRMED' TO 'GOING';
+ALTER TYPE "EventParticipantStatus" ADD VALUE 'NOT_GOING';

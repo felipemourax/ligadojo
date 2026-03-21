@@ -1,0 +1,2 @@
+// Graduation components
+export {}

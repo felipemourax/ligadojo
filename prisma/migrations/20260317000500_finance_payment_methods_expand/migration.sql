@@ -1,0 +1,2 @@
+ALTER TYPE "FinancePaymentMethod" ADD VALUE IF NOT EXISTS 'BOLETO';
+ALTER TYPE "FinancePaymentMethod" ADD VALUE IF NOT EXISTS 'CASH';

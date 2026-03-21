@@ -1,0 +1,13 @@
+node_modules
+.next
+.env
+.env.local
+coverage
+dist
+prisma/dev.db
+.playwright-cli
+.codex-tmp
+output
+test-results
+tmp
+tsconfig.tsbuildinfo
