@@ -6,6 +6,7 @@ import {
   PlanClassLimitKind,
 } from "@prisma/client"
 import { prisma } from "@/apps/api/src/infrastructure/prisma/prisma-client"
+import { MarketingBrandKitService } from "@/apps/api/src/modules/marketing/services/marketing-brand-kit.service"
 import { activityCategoryOptions } from "@/apps/api/src/modules/modalities/domain/modality"
 import { TenantOnboardingRepository } from "@/apps/api/src/modules/onboarding/repositories/tenant-onboarding.repository"
 import type {
@@ -140,7 +141,8 @@ export class TenantOnboardingValidationError extends Error {
 
 export class TenantOnboardingService {
   constructor(
-    private readonly tenantOnboardingRepository = new TenantOnboardingRepository()
+    private readonly tenantOnboardingRepository = new TenantOnboardingRepository(),
+    private readonly marketingBrandKitService = new MarketingBrandKitService()
   ) {}
 
   async getTenantOnboarding(tenantId: string) {
@@ -617,6 +619,8 @@ export class TenantOnboardingService {
         },
       },
     })
+
+    await this.marketingBrandKitService.syncFromTenantBranding({ tenantId })
   }
 
   private async syncLocation(tenantId: string, location?: LocationStepData) {

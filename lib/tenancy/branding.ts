@@ -1,4 +1,4 @@
-import { TenantRepository } from "@/apps/api/src/modules/tenancy/repositories/tenant.repository"
+import { prisma } from "@/apps/api/src/infrastructure/prisma/prisma-client"
 import type { TenantContext } from "@/lib/tenancy/types"
 
 export interface TenantBranding {
@@ -51,19 +51,33 @@ function readString(value: unknown) {
   return typeof value === "string" && value.trim().length > 0 ? value : null
 }
 
-const tenantRepository = new TenantRepository()
-
 export async function getResolvedTenantBranding(tenant: TenantContext): Promise<TenantBranding> {
   if (tenant.kind !== "tenant" || !tenant.tenantSlug) {
     return getTenantBranding(tenant)
   }
 
   const tenantResolution = tenant.isCustomDomain
-    ? await tenantRepository.findByDomain(tenant.host)
+    ? await prisma.tenantDomain.findUnique({
+        where: { domain: tenant.host },
+        include: {
+          tenant: {
+            include: {
+              branding: true,
+            },
+          },
+        },
+      })
     : null
-  const tenantEntity = tenantResolution?.tenant ?? (await tenantRepository.findBySlug(tenant.tenantSlug))
+  const tenantRecord =
+    tenantResolution?.tenant ??
+    (await prisma.tenant.findUnique({
+      where: { slug: tenant.tenantSlug },
+      include: {
+        branding: true,
+      },
+    }))
 
-  if (!tenantEntity) {
+  if (!tenantRecord) {
     return getTenantBranding({
       kind: "unknown",
       host: tenant.host,
@@ -76,21 +90,22 @@ export async function getResolvedTenantBranding(tenant: TenantContext): Promise<
   const fallback = getTenantBranding({
     kind: "tenant",
     host: tenant.host,
-    tenantSlug: tenantEntity.slug,
-    tenantName: tenantEntity.displayName,
-    isCustomDomain: Boolean(tenantResolution?.domain ?? tenant.isCustomDomain),
+    tenantSlug: tenantRecord.slug,
+    tenantName: tenantRecord.displayName,
+    isCustomDomain: Boolean(tenantResolution ?? tenant.isCustomDomain),
   })
   const brandingJson =
-    tenantEntity?.brandingJson && typeof tenantEntity.brandingJson === "object" && !Array.isArray(tenantEntity.brandingJson)
-      ? (tenantEntity.brandingJson as Record<string, unknown>)
+    tenantRecord.brandingJson && typeof tenantRecord.brandingJson === "object" && !Array.isArray(tenantRecord.brandingJson)
+      ? (tenantRecord.brandingJson as Record<string, unknown>)
       : null
 
   return {
-    appName: readString(brandingJson?.appName) ?? fallback.appName,
-    shortName: tenantEntity.displayName ?? fallback.shortName,
-    themeColor: readString(brandingJson?.primaryColor) ?? fallback.themeColor,
-    backgroundColor: readString(brandingJson?.secondaryColor) ?? fallback.backgroundColor,
-    logoUrl: readString(brandingJson?.logoUrl),
-    bannerUrl: readString(brandingJson?.bannerUrl),
+    appName: readString(brandingJson?.appName) ?? tenantRecord.branding?.appName ?? fallback.appName,
+    shortName: tenantRecord.displayName ?? fallback.shortName,
+    themeColor: readString(brandingJson?.primaryColor) ?? tenantRecord.branding?.primaryColor ?? fallback.themeColor,
+    backgroundColor:
+      readString(brandingJson?.secondaryColor) ?? tenantRecord.branding?.secondaryColor ?? fallback.backgroundColor,
+    logoUrl: readString(brandingJson?.logoUrl) ?? tenantRecord.branding?.logoUrl ?? null,
+    bannerUrl: readString(brandingJson?.bannerUrl) ?? tenantRecord.branding?.bannerUrl ?? null,
   }
 }
