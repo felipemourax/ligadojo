@@ -25,8 +25,8 @@ function hashString(value: string): number {
 export function getTenantBranding(tenant: TenantContext): TenantBranding {
   if (tenant.kind !== "tenant" || !tenant.tenantSlug) {
     return {
-      appName: "Dojo",
-      shortName: "Dojo",
+      appName: "LigaDojo",
+      shortName: "LigaDojo",
       themeColor: "#1a1a2e",
       backgroundColor: "#0f172a",
       logoUrl: null,
@@ -39,7 +39,7 @@ export function getTenantBranding(tenant: TenantContext): TenantBranding {
 
   return {
     appName,
-    shortName: tenant.tenantName ?? "Dojo",
+    shortName: tenant.tenantName ?? "LigaDojo",
     themeColor: tenantPalette[colorIndex],
     backgroundColor: "#0f172a",
     logoUrl: null,

@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -58,18 +59,18 @@ export function DesktopSidebar() {
         )}>
           {!collapsed && (
             <Link href={routes.dashboard} className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-                <span className="text-sm font-bold text-primary-foreground">D</span>
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-black p-1.5 shadow-sm">
+                <Image alt="Logo da LigaDojo" className="h-full w-full object-contain" height={36} src="/logo-ligadojo.svg" width={36} />
               </div>
               <div>
-                <h1 className="font-semibold text-sidebar-foreground">Dojo</h1>
+                <h1 className="font-semibold text-sidebar-foreground">LigaDojo</h1>
                 <p className="text-[10px] text-sidebar-foreground/60">Gestão de Academias</p>
               </div>
             </Link>
           )}
           {collapsed && (
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-sm font-bold text-primary-foreground">D</span>
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-black p-1.5 shadow-sm">
+              <Image alt="Logo da LigaDojo" className="h-full w-full object-contain" height={36} src="/logo-ligadojo.svg" width={36} />
             </div>
           )}
         </div>

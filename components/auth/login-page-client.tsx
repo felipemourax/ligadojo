@@ -42,10 +42,11 @@ export function LoginPageClient({ tenant, branding }: LoginPageClientProps) {
 
   const isTenantHost = tenant.kind === "tenant"
   const brandColor = branding.themeColor ?? "hsl(var(--primary))"
-  const title = isTenantHost ? branding.appName ?? "App da academia" : "Dojo"
+  const title = isTenantHost ? branding.appName ?? "App da academia" : "LigaDojo"
   const subtitle = isTenantHost
     ? `Entre para acessar a experiência da ${tenant.tenantName ?? "sua academia"}.`
     : "Gestão de Academias"
+  const platformLogoUrl = "/logo-ligadojo.svg"
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -175,9 +176,9 @@ export function LoginPageClient({ tenant, branding }: LoginPageClientProps) {
         <div className="mb-8 text-center">
           <div
             className="mx-auto mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-white/10 shadow-lg"
-            style={{ backgroundColor: isTenantHost ? `${brandColor}22` : "hsl(var(--primary))" }}
+            style={{ backgroundColor: isTenantHost ? `${brandColor}22` : "#000000" }}
           >
-            {branding.logoUrl ? (
+            {isTenantHost && branding.logoUrl ? (
               <Image
                 alt={`Logo de ${branding.appName}`}
                 className="h-full w-full object-cover"
@@ -186,9 +187,13 @@ export function LoginPageClient({ tenant, branding }: LoginPageClientProps) {
                 width={64}
               />
             ) : (
-              <span className="text-2xl font-bold text-primary-foreground">
-                {isTenantHost ? branding.shortName?.[0] ?? "A" : "D"}
-              </span>
+              <Image
+                alt="Logo da LigaDojo"
+                className="h-full w-full object-contain p-2"
+                height={64}
+                src={platformLogoUrl}
+                width={64}
+              />
             )}
           </div>
           <h1 className="text-2xl font-bold text-foreground">{title}</h1>

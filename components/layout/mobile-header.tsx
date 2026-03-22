@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { Bell, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -47,8 +48,8 @@ export function MobileHeader({ title = "Dashboard" }: MobileHeaderProps) {
       <div className="flex items-center justify-between h-14 px-4">
         {/* Logo / Title */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-            <span className="text-sm font-bold text-primary-foreground">D</span>
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl bg-black p-1 shadow-sm">
+            <Image alt="Logo da LigaDojo" className="h-full w-full object-contain" height={32} src="/logo-ligadojo.svg" width={32} />
           </div>
           <h1 className="font-semibold text-foreground">{title}</h1>
         </div>
