@@ -63,6 +63,11 @@ export async function getResolvedTenantBranding(tenant: TenantContext): Promise<
           tenant: {
             include: {
               branding: true,
+              onboarding: {
+                select: {
+                  brandingSetupJson: true,
+                },
+              },
             },
           },
         },
@@ -74,6 +79,11 @@ export async function getResolvedTenantBranding(tenant: TenantContext): Promise<
       where: { slug: tenant.tenantSlug },
       include: {
         branding: true,
+        onboarding: {
+          select: {
+            brandingSetupJson: true,
+          },
+        },
       },
     }))
 
@@ -98,14 +108,39 @@ export async function getResolvedTenantBranding(tenant: TenantContext): Promise<
     tenantRecord.brandingJson && typeof tenantRecord.brandingJson === "object" && !Array.isArray(tenantRecord.brandingJson)
       ? (tenantRecord.brandingJson as Record<string, unknown>)
       : null
+  const onboardingBranding =
+    tenantRecord.onboarding?.brandingSetupJson &&
+    typeof tenantRecord.onboarding.brandingSetupJson === "object" &&
+    !Array.isArray(tenantRecord.onboarding.brandingSetupJson)
+      ? (tenantRecord.onboarding.brandingSetupJson as Record<string, unknown>)
+      : null
 
   return {
-    appName: readString(brandingJson?.appName) ?? tenantRecord.branding?.appName ?? fallback.appName,
+    appName:
+      readString(brandingJson?.appName) ??
+      tenantRecord.branding?.appName ??
+      readString(onboardingBranding?.appName) ??
+      fallback.appName,
     shortName: tenantRecord.displayName ?? fallback.shortName,
-    themeColor: readString(brandingJson?.primaryColor) ?? tenantRecord.branding?.primaryColor ?? fallback.themeColor,
+    themeColor:
+      readString(brandingJson?.primaryColor) ??
+      tenantRecord.branding?.primaryColor ??
+      readString(onboardingBranding?.primaryColor) ??
+      fallback.themeColor,
     backgroundColor:
-      readString(brandingJson?.secondaryColor) ?? tenantRecord.branding?.secondaryColor ?? fallback.backgroundColor,
-    logoUrl: readString(brandingJson?.logoUrl) ?? tenantRecord.branding?.logoUrl ?? null,
-    bannerUrl: readString(brandingJson?.bannerUrl) ?? tenantRecord.branding?.bannerUrl ?? null,
+      readString(brandingJson?.secondaryColor) ??
+      tenantRecord.branding?.secondaryColor ??
+      readString(onboardingBranding?.secondaryColor) ??
+      fallback.backgroundColor,
+    logoUrl:
+      readString(brandingJson?.logoUrl) ??
+      tenantRecord.branding?.logoUrl ??
+      readString(onboardingBranding?.logoUrl) ??
+      null,
+    bannerUrl:
+      readString(brandingJson?.bannerUrl) ??
+      tenantRecord.branding?.bannerUrl ??
+      readString(onboardingBranding?.bannerUrl) ??
+      null,
   }
 }

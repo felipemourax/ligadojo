@@ -128,18 +128,38 @@ export class MarketingBrandKitService {
             secondaryColor: true,
           },
         },
+        onboarding: {
+          select: {
+            brandingSetupJson: true,
+          },
+        },
       },
     })
 
     const brandingJson =
       tenant?.brandingJson && isObject(tenant.brandingJson) ? tenant.brandingJson : null
+    const onboardingBranding =
+      tenant?.onboarding?.brandingSetupJson && isObject(tenant.onboarding.brandingSetupJson)
+        ? tenant.onboarding.brandingSetupJson
+        : null
 
     return {
-      appName: readString(brandingJson?.appName) ?? readString(tenant?.branding?.appName),
-      logoUrl: readString(brandingJson?.logoUrl) ?? readString(tenant?.branding?.logoUrl),
-      primaryColor: readString(brandingJson?.primaryColor) ?? readString(tenant?.branding?.primaryColor),
+      appName:
+        readString(brandingJson?.appName) ??
+        readString(tenant?.branding?.appName) ??
+        readString(onboardingBranding?.appName),
+      logoUrl:
+        readString(brandingJson?.logoUrl) ??
+        readString(tenant?.branding?.logoUrl) ??
+        readString(onboardingBranding?.logoUrl),
+      primaryColor:
+        readString(brandingJson?.primaryColor) ??
+        readString(tenant?.branding?.primaryColor) ??
+        readString(onboardingBranding?.primaryColor),
       secondaryColor:
-        readString(brandingJson?.secondaryColor) ?? readString(tenant?.branding?.secondaryColor),
+        readString(brandingJson?.secondaryColor) ??
+        readString(tenant?.branding?.secondaryColor) ??
+        readString(onboardingBranding?.secondaryColor),
     }
   }
 }
