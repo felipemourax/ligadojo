@@ -89,6 +89,13 @@ Responsabilidade:
 - CTA institucionais e entrada para login, onboarding da academia e ranking publico;
 - nao deve compartilhar ownership com o modulo `site`, que continua sendo o site publico da academia.
 
+Modelo de host em producao:
+
+- `ligadojo.com.br` = plataforma;
+- `slug.ligadojo.com.br` = tenant gerenciado da academia;
+- `slug.ligadojo.com.br/site` = rota explicita do site publico da academia;
+- `slug.ligadojo.com.br/app` = entrada direta do app/login do tenant.
+
 ## Estrutura Atual Por Diretorio
 
 ### `apps/api/src/modules/*`
@@ -233,6 +240,8 @@ Estado alvo:
 - em producao, o host raiz da plataforma deve ser `ligadojo.com.br` e os tenants devem usar o padrao `slug.ligadojo.com.br`;
 - o dominio raiz da plataforma e configuravel por `PLATFORM_ROOT_DOMAIN`, e os hosts publicos da plataforma podem ser complementados via `PLATFORM_HOSTS`;
 - no host da plataforma (`localhost:3000` / `ligadojo.com.br`), usuarios autenticados que nao sao `platform_admin` devem passar primeiro pela selecao de contexto em `/access`.
+- no host do tenant (`slug.ligadojo.com.br`), a raiz `/` continua sendo a superficie publica da academia quando o site estiver publicado;
+- a entrada explicita do app do tenant deve continuar disponivel em `/app`.
 - a tela `/access` deve listar:
   - academias onde o usuario entra como `teacher` ou `student`;
   - academias onde o usuario entra como `academy_admin`;

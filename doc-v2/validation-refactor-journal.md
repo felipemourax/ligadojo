@@ -5536,6 +5536,49 @@ Adicionar no app do aluno e no app do professor uma aba `Graduacoes` dentro do p
 
 - nao houve dado temporario para cleanup nesta rodada.
 
+## Refinamento Posterior 29 - Consolidacao operacional do modelo `ligadojo.com.br` + `*.ligadojo.com.br`
+
+### Escopo
+
+- a rodada ficou restrita a infraestrutura e tenancy de producao;
+- o objetivo foi consolidar a plataforma em `ligadojo.com.br` e os tenants gerenciados em `slug.ligadojo.com.br`.
+
+### O que foi ajustado
+
+- o dominio institucional `ligadojo.com.br` foi tratado como host da plataforma;
+- o tenant existente foi migrado de `jiu-jitea-salvador.localhost` para `jiu-jitea-salvador.ligadojo.com.br`;
+- o vhost `Ligadojo` do Nginx passou a aceitar:
+  - `ligadojo.com.br`
+  - `www.ligadojo.com.br`
+  - `*.ligadojo.com.br`
+- a configuracao de producao recebeu:
+  - `PLATFORM_ROOT_DOMAIN=ligadojo.com.br`
+  - `PLATFORM_HOSTS=ligadojo.com.br,www.ligadojo.com.br`
+- o runtime real em producao foi confirmado como `PM2 + Nginx`, e nao o status exibido em `Node Project` do aaPanel.
+
+### Validacao
+
+- `Host: ligadojo.com.br` em `http://127.0.0.1`: `200`
+- `Host: jiu-jitea-salvador.ligadojo.com.br` em `http://127.0.0.1/app`: `200`
+- `PM2`:
+  - processo `ligadojo` online na porta `3003`
+- banco de producao:
+  - `TenantDomain = jiu-jitea-salvador.ligadojo.com.br`
+
+### Pendencias externas
+
+- criar DNS wildcard:
+  - `A @ -> 154.38.187.187`
+  - `A www -> 154.38.187.187`
+  - `A * -> 154.38.187.187`
+- emitir SSL wildcard por DNS challenge para:
+  - `ligadojo.com.br`
+  - `*.ligadojo.com.br`
+
+### Cleanup
+
+- nao houve cleanup de dados temporarios; a mudanca foi estrutural e mantida como estado oficial de producao.
+
 ## Refinamento Posterior 24 - Landing do SaaS alinhada ao layout de referencia
 
 ### O que foi implementado

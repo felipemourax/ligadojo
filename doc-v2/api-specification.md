@@ -231,6 +231,8 @@ Config observada no editor administrativo de `site`:
 
 - configuracao e publicacao sempre pertencem ao tenant ativo;
 - quando o `TenantSite.status = published`, a home do host do tenant (`/`) deve servir o site publico para visitantes sem membership ativa nesse tenant;
+- em producao, o host gerenciado do tenant deve seguir o padrao `slug.ligadojo.com.br`;
+- a entrada explicita do app do tenant deve continuar em `/app`, independente de o site publico estar publicado;
 - `academy_admin`, `teacher` e `student` autenticados no mesmo tenant continuam sendo redirecionados para sua superficie propria;
 - o CTA `Ver site` do builder administrativo deve abrir a URL publica do tenant, nao um `/site` relativo do host atual;
 - upload de branding deve seguir o mesmo tenant/capability gate da superficie de `site`.

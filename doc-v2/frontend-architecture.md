@@ -143,6 +143,10 @@ Diretriz:
 - nao reutilizar o modulo `site` para a landing institucional do produto;
 - a home `/` do host da plataforma deve renderizar a landing apenas para visitante nao autenticado;
 - `/login` continua sendo a rota propria de autenticacao e nao deve ser fundida com a landing.
+- em producao, a entrada publica da plataforma deve viver em `ligadojo.com.br`;
+- os tenants gerenciados devem usar `slug.ligadojo.com.br`;
+- no host do tenant, `/` continua podendo servir o site publico da academia quando publicado;
+- a entrada direta do app do tenant deve permanecer acessivel em `/app`.
 
 ## Layout Variants
 

@@ -136,6 +136,13 @@ Observacao importante de ownership:
 - no autocadastro do aluno, `enrollment-requests` cria o acesso imediato e registra `StudentActivity`; turma e `StudentModality` deixam de ser pre-requisito para entrada no app;
 - `onboarding` permanece dono de criacao de academia e setup.
 
+Observacao importante de tenancy gerenciada:
+
+- em producao, o dominio raiz da plataforma e `ligadojo.com.br`;
+- tenants gerenciados devem usar o padrao `slug.ligadojo.com.br`;
+- `buildManagedTenantDomain` passou a centralizar esse comportamento;
+- em desenvolvimento local o padrao continua `slug.localhost`.
+
 ### Estado Alvo
 
 Todo acesso estrutural a persistencia deve ficar encapsulado em repositorios ou gateways equivalentes quando a complexidade do modulo justificar.
