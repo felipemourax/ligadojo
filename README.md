@@ -105,7 +105,7 @@ Observacao importante:
 - o runtime oficial em producao hoje esta em `PM2 + Nginx`;
 - o painel `Node Project` do aaPanel nao e a fonte de verdade do processo em execucao.
 
-## DNS e SSL recomendados
+## DNS e SSL de producao
 
 Para o modelo escalavel de tenants:
 
@@ -118,7 +118,16 @@ SSL:
 - `ligadojo.com.br`
 - `*.ligadojo.com.br`
 
-Wildcard SSL exige validacao por DNS challenge.
+Estado atual de producao:
+
+- o DNS wildcard foi consolidado para o modelo `ligadojo.com.br` + `*.ligadojo.com.br`;
+- o certificado wildcard foi emitido por DNS challenge via Cloudflare;
+- o tenant validado em producao respondeu com HTTPS valido em:
+  - `https://jiu-jitea-salvador.ligadojo.com.br/app`
+
+Observacao:
+
+- wildcard SSL exige validacao por DNS challenge; no ambiente atual, essa emissao foi feita via Cloudflare API.
 
 ## Fluxo de deploy atual
 

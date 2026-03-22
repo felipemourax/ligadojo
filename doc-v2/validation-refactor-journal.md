@@ -5565,19 +5565,38 @@ Adicionar no app do aluno e no app do professor uma aba `Graduacoes` dentro do p
 - banco de producao:
   - `TenantDomain = jiu-jitea-salvador.ligadojo.com.br`
 
-### Pendencias externas
-
-- criar DNS wildcard:
-  - `A @ -> 154.38.187.187`
-  - `A www -> 154.38.187.187`
-  - `A * -> 154.38.187.187`
-- emitir SSL wildcard por DNS challenge para:
-  - `ligadojo.com.br`
-  - `*.ligadojo.com.br`
-
 ### Cleanup
 
 - nao houve cleanup de dados temporarios; a mudanca foi estrutural e mantida como estado oficial de producao.
+
+## Refinamento Posterior 30 - Wildcard SSL ativo em producao para `ligadojo.com.br` e tenants gerenciados
+
+### Escopo
+
+- a rodada ficou restrita a infraestrutura de producao e seguranca de transporte;
+- o objetivo foi sair do estado pendente de wildcard SSL e validar HTTPS real para tenants em `*.ligadojo.com.br`.
+
+### O que foi ajustado
+
+- o wildcard SSL foi emitido por DNS challenge via Cloudflare;
+- o certificado instalado no vhost `Ligadojo` passou a cobrir:
+  - `ligadojo.com.br`
+  - `*.ligadojo.com.br`
+- o Nginx foi recarregado com o certificado novo;
+- o tenant gerenciado passou a responder com HTTPS valido, sem erro de `subject alternative name`.
+
+### Validacao
+
+- certificado instalado:
+  - `DNS: ligadojo.com.br`
+  - `DNS: *.ligadojo.com.br`
+- validacao final em producao:
+  - `https://ligadojo.com.br`: respondeu com certificado valido
+  - `https://jiu-jitea-salvador.ligadojo.com.br/app`: `HTTP/2 200` sem erro de certificado
+
+### Cleanup
+
+- os registros temporarios de `_acme-challenge` foram gerenciados automaticamente pelo fluxo de emissao e nao ficaram pendencias manuais apos a instalacao do certificado.
 
 ## Refinamento Posterior 24 - Landing do SaaS alinhada ao layout de referencia
 
