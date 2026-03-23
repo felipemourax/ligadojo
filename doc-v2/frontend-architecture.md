@@ -148,6 +148,15 @@ Diretriz:
 - no host do tenant, `/` continua podendo servir o site publico da academia quando publicado;
 - a entrada direta do app do tenant deve permanecer acessivel em `/app`.
 
+## Superficie Administrativa Da Plataforma
+
+- `/platform` e uma superficie dedicada de `platform_admin`;
+- a UI dessa superficie deve viver em `modules/platform-admin`;
+- o recorte atual implementado nessa superficie foi reduzido para:
+  - `Dashboard`
+  - `Academias`
+- a navegacao dessa area nao deve depender de tenant ativo.
+
 ## Layout Variants
 
 O sistema deve padronizar variantes de layout na camada de UI. Mesmo quando ainda nao implementadas em toda a superficie, elas devem orientar novas telas.

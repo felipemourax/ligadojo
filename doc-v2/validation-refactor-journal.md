@@ -5476,6 +5476,97 @@ Adicionar no app do aluno e no app do professor uma aba `Graduacoes` dentro do p
 
 - nao houve dado temporario para cleanup nesta rodada.
 
+## Refinamento Posterior 33 - Casca do admin da plataforma alinhada ao dashboard da academia
+
+### Objetivo
+
+- deixar a superficie `/platform` com a mesma linguagem estrutural do dashboard da academia;
+- manter a navegacao da plataforma enxuta, sem reaproveitar a navegacao de tenant;
+- evitar uma casca paralela com comportamento visual divergente.
+
+### O que mudou
+
+- a plataforma deixou de usar `SurfaceShell`;
+- `/platform` passou a usar uma casca equivalente a do dashboard:
+  - sidebar fixa no desktop;
+  - header mobile;
+  - navegacao inferior no mobile;
+  - `ContentFrame` no mesmo tamanho do dashboard administrativo;
+- a navegacao da plataforma ficou restrita a:
+  - `Dashboard`
+  - `Academias`
+
+### Arquivos principais
+
+- [`app/platform/layout.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/app/platform/layout.tsx)
+- [`modules/platform-admin/navigation.ts`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/modules/platform-admin/navigation.ts)
+- [`modules/platform-admin/components/platform-desktop-sidebar.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/modules/platform-admin/components/platform-desktop-sidebar.tsx)
+- [`modules/platform-admin/components/platform-mobile-header.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/modules/platform-admin/components/platform-mobile-header.tsx)
+- [`modules/platform-admin/components/platform-mobile-nav.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/modules/platform-admin/components/platform-mobile-nav.tsx)
+
+### Validacao
+
+- `./node_modules/.bin/tsc --noEmit --incremental false`: passou
+
+## Refinamento Posterior 34 - UI interna do admin da plataforma alinhada ao dashboard
+
+### Objetivo
+
+- aproximar as telas `Dashboard`, `Academias` e detalhe de tenant da linguagem visual do dashboard da academia;
+- manter o comportamento e o escopo da plataforma, mudando apenas leitura, hierarquia e acabamento.
+
+### O que mudou
+
+- `Dashboard` da plataforma:
+  - passou a usar `StatCard`;
+  - ganhou bloco de acoes rapidas;
+  - ganhou um card lateral de contexto operacional;
+- `Academias`:
+  - ganhou metricas no padrao do dashboard;
+  - filtros ficaram em card unico mais coerente com o resto da interface;
+  - os itens da lista foram reestruturados com card principal + mini-cards de metrica;
+- detalhe da academia:
+  - ganhou hero visual mais forte;
+  - metricas passaram a usar `StatCard`;
+  - cards de dominios e resumo operacional foram alinhados ao mesmo padrão visual.
+
+### Arquivos principais
+
+- [`modules/platform-admin/components/platform-dashboard-screen.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/modules/platform-admin/components/platform-dashboard-screen.tsx)
+- [`modules/platform-admin/components/platform-academies-screen.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/modules/platform-admin/components/platform-academies-screen.tsx)
+- [`modules/platform-admin/components/platform-academy-detail-screen.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/modules/platform-admin/components/platform-academy-detail-screen.tsx)
+
+### Validacao
+
+- `./node_modules/.bin/tsc --noEmit --incremental false`: passou
+
+## Refinamento Posterior 32 - Conta exclusiva de admin da plataforma
+
+### Objetivo
+
+- separar o `platform_admin` do admin de academia seedado;
+- deixar o acesso da superficie `/platform` coerente com o dominio;
+- parar de usar `joao@academia.com` como admin global da plataforma.
+
+### O que mudou
+
+- o seed passou a criar o usuario exclusivo `admin@ligadojo.com.br`;
+- a senha seedada desse usuario ficou `12345678`;
+- o `.env` local e o `.env.example` passaram a apontar `PLATFORM_ADMIN_EMAILS` para `admin@ligadojo.com.br`;
+- `joao@academia.com` permanece apenas como `academy_admin` do tenant seedado.
+
+### Arquivos principais
+
+- [`prisma/seed.mjs`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/prisma/seed.mjs)
+- [`.env`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/.env)
+- [`.env.example`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/.env.example)
+
+### Validacao
+
+- a regra de composicao de sessao continua inferindo `platform_admin` por `PLATFORM_ADMIN_EMAILS`;
+- a superficie `/platform` fica reservada para a nova conta exclusiva da plataforma;
+- `joao@academia.com` deixa de ser a conta de referencia para o admin global.
+
 ## Refinamento Posterior 27 - Dominio do SaaS tratado como superficie de plataforma
 
 ### Escopo
@@ -5794,6 +5885,60 @@ Adicionar no app do aluno e no app do professor uma aba `Graduacoes` dentro do p
 ### Arquivo principal
 
 - [`platform-landing-page.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/modules/platform-site/components/platform-landing-page.tsx)
+
+### Validacao
+
+- `./node_modules/.bin/tsc --noEmit --incremental false`: passou
+
+### Cleanup
+
+- nao houve dado temporario para cleanup nesta rodada.
+
+## Refinamento Posterior 31 - Superficie administrativa inicial da plataforma
+
+### Escopo
+
+- a rodada ficou restrita ao `platform_admin`;
+- o objetivo foi implementar o recorte atual da plataforma com apenas:
+  - `Dashboard`
+  - `Academias`
+
+### O que foi ajustado
+
+- a navegacao de `/platform` foi reduzida para:
+  - `Dashboard`
+  - `Academias`
+- a plataforma ganhou um modulo proprio em `modules/platform-admin`;
+- foram criadas APIs exclusivas da plataforma:
+  - `GET /api/platform/overview`
+  - `GET /api/platform/academies`
+  - `GET /api/platform/academies/[slug]`
+  - `PATCH /api/platform/academies/[slug]`
+- o dashboard da plataforma passou a mostrar:
+  - total de academias
+  - academias ativas
+  - academias suspensas
+  - novas no mes
+- a tela `Academias` passou a listar tenants com:
+  - busca
+  - filtro por status
+  - entrada no detalhe
+- o detalhe do tenant passou a permitir:
+  - aprovar
+  - suspender
+  - cancelar
+- no dominio atual, `cancelar` converge para `Tenant.status = SUSPENDED`, porque ainda nao existe estado canônico separado de cancelamento no agregado `Tenant`.
+
+### Arquivos principais
+
+- [`app/platform/layout.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/app/platform/layout.tsx)
+- [`app/platform/page.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/app/platform/page.tsx)
+- [`app/platform/academies/page.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/app/platform/academies/page.tsx)
+- [`app/platform/academies/[slug]/page.tsx`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/app/platform/academies/%5Bslug%5D/page.tsx)
+- [`app/api/platform/overview/route.ts`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/app/api/platform/overview/route.ts)
+- [`app/api/platform/academies/route.ts`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/app/api/platform/academies/route.ts)
+- [`app/api/platform/academies/[slug]/route.ts`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/app/api/platform/academies/%5Bslug%5D/route.ts)
+- [`apps/api/src/modules/platform/services/platform-admin.service.ts`](/Users/felipemoura/Desktop/Saas%20Academia%20-%20DOJO/apps/api/src/modules/platform/services/platform-admin.service.ts)
 
 ### Validacao
 

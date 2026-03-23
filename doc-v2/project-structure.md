@@ -96,6 +96,24 @@ Modelo de host em producao:
 - `slug.ligadojo.com.br/site` = rota explicita do site publico da academia;
 - `slug.ligadojo.com.br/app` = entrada direta do app/login do tenant.
 
+### Superficie administrativa da plataforma
+
+```text
+modules/platform-admin/
+  components/
+    platform-dashboard-screen.tsx
+    platform-academies-screen.tsx
+    platform-academy-detail-screen.tsx
+  services/
+    index.ts
+```
+
+Responsabilidade:
+
+- dashboard operacional da plataforma;
+- listagem global de academias;
+- detalhe e acoes de tenant pelo `platform_admin`.
+
 ## Estrutura Atual Por Diretorio
 
 ### `apps/api/src/modules/*`

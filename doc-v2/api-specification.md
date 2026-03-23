@@ -45,6 +45,23 @@ Documentar as APIs atuais e as APIs esperadas por modulo, separando claramente:
 
 ---
 
+## Platform Admin
+
+### Objetivo do modulo
+
+Dar visao geral da plataforma e permitir gestao global dos tenants.
+
+### APIs da superficie de plataforma
+
+| Metodo | Endpoint | Status | Observacao |
+| --- | --- | --- | --- |
+| `GET` | `/api/platform/overview` | `existing` | Retorna a visao geral da plataforma com foco em academias ativas e status global dos tenants. |
+| `GET` | `/api/platform/academies` | `existing` | Lista academias da plataforma com busca e filtro de status. |
+| `GET` | `/api/platform/academies/[slug]` | `existing` | Retorna o detalhe operacional de um tenant especifico. |
+| `PATCH` | `/api/platform/academies/[slug]` | `existing` | Atualiza o status operacional do tenant via `approve`, `suspend` ou `cancel`. No modelo atual, `cancel` converge para `Tenant.status = SUSPENDED`. |
+
+---
+
 ## Attendance
 
 ### Objetivo do modulo

@@ -1,15 +1,9 @@
 import { SurfaceGuard } from "@/components/guards"
-import { SurfaceShell } from "@/components/layout/surface-shell"
+import { ContentFrame } from "@/components/layout/content-frame"
 import { CurrentSessionProvider } from "@/hooks/use-current-session"
-import { routes } from "@/lib/routes"
-
-const platformNavItems = [
-  { href: routes.platform, label: "Resumo" },
-  { href: routes.platformAcademies, label: "Academias" },
-  { href: routes.platformBilling, label: "Cobrança" },
-  { href: routes.platformMetrics, label: "Métricas" },
-  { href: routes.platformSupport, label: "Suporte" },
-]
+import { PlatformDesktopSidebar } from "@/modules/platform-admin/components/platform-desktop-sidebar"
+import { PlatformMobileHeader } from "@/modules/platform-admin/components/platform-mobile-header"
+import { PlatformMobileNav } from "@/modules/platform-admin/components/platform-mobile-nav"
 
 export default function PlatformLayout({
   children,
@@ -19,15 +13,21 @@ export default function PlatformLayout({
   return (
     <CurrentSessionProvider>
       <SurfaceGuard surface="platform">
-        <SurfaceShell
-          title="Dojo Platform"
-          subtitle="Administração da plataforma SaaS"
-          homeHref={routes.platform}
-          homeLabel="Painel da plataforma"
-          navItems={platformNavItems}
-        >
-          {children}
-        </SurfaceShell>
+        <div className="flex min-h-screen bg-background">
+          <PlatformDesktopSidebar />
+
+          <div className="flex min-w-0 flex-1 flex-col">
+            <PlatformMobileHeader />
+
+            <main className="flex-1 pb-20 md:pb-0">
+              <ContentFrame size="dashboard" className="px-4 py-4 md:px-6 md:py-6 lg:px-8 xl:px-10">
+                {children}
+              </ContentFrame>
+            </main>
+
+            <PlatformMobileNav />
+          </div>
+        </div>
       </SurfaceGuard>
     </CurrentSessionProvider>
   )

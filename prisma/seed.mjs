@@ -108,6 +108,16 @@ async function main() {
     },
   })
 
+  const platformAdmin = await prisma.user.upsert({
+    where: { email: "admin@ligadojo.com.br" },
+    update: { name: "Admin LigaDojo" },
+    create: {
+      email: "admin@ligadojo.com.br",
+      name: "Admin LigaDojo",
+      phone: "(11) 90000-0001",
+    },
+  })
+
   const teacher = await prisma.user.upsert({
     where: { email: "prof.ricardo@email.com" },
     update: { name: "Prof. Ricardo" },
@@ -170,6 +180,7 @@ async function main() {
   })
 
   const adminCredential = createPasswordHash("12345678")
+  const platformAdminCredential = createPasswordHash("12345678")
   const teacherCredential = createPasswordHash("12345678")
   const studentCredential = createPasswordHash("12345678")
   const fightLabAdminCredential = createPasswordHash("12345678")
@@ -181,6 +192,15 @@ async function main() {
     create: {
       userId: admin.id,
       ...adminCredential,
+    },
+  })
+
+  await prisma.passwordCredential.upsert({
+    where: { userId: platformAdmin.id },
+    update: platformAdminCredential,
+    create: {
+      userId: platformAdmin.id,
+      ...platformAdminCredential,
     },
   })
 
@@ -416,6 +436,7 @@ async function main() {
       {
         tenantId: dojoCentro.id,
         name: "Jiu-Jitsu",
+        activityCategory: "jiu-jitsu",
         ageGroups: ["ADULT"],
         defaultDurationMinutes: 60,
         defaultCapacity: 24,
@@ -425,6 +446,7 @@ async function main() {
       {
         tenantId: dojoCentro.id,
         name: "Jiu-Jitsu Infantil",
+        activityCategory: "jiu-jitsu",
         ageGroups: ["KIDS"],
         defaultDurationMinutes: 45,
         defaultCapacity: 18,
@@ -434,6 +456,7 @@ async function main() {
       {
         tenantId: fightLab.id,
         name: "Muay Thai",
+        activityCategory: "muay-thai",
         ageGroups: ["ADULT"],
         defaultDurationMinutes: 60,
         defaultCapacity: 20,
@@ -665,6 +688,7 @@ async function main() {
   })
 
   await prisma.studentGraduation.deleteMany({})
+  await prisma.studentActivity.deleteMany({})
   await prisma.studentModality.deleteMany({})
   await prisma.studentProfile.deleteMany({
     where: { tenantId: { in: [dojoCentro.id, fightLab.id] } },
@@ -743,9 +767,62 @@ async function main() {
     },
   })
 
+  const mariaJiuJitsuActivity = await prisma.studentActivity.create({
+    data: {
+      studentProfileId: mariaProfile.id,
+      activityCategory: "jiu-jitsu",
+      belt: "Roxa",
+      stripes: 3,
+      startDate: new Date("2021-06-15T00:00:00.000Z"),
+      notes: "Atividade principal compartilhada entre as modalidades de jiu-jitsu.",
+    },
+  })
+
+  const carlosJiuJitsuActivity = await prisma.studentActivity.create({
+    data: {
+      studentProfileId: carlosProfile.id,
+      activityCategory: "jiu-jitsu",
+      belt: "Azul",
+      stripes: 2,
+      startDate: new Date("2023-03-10T00:00:00.000Z"),
+    },
+  })
+
+  const anaJiuJitsuActivity = await prisma.studentActivity.create({
+    data: {
+      studentProfileId: anaProfile.id,
+      activityCategory: "jiu-jitsu",
+      belt: "Marrom",
+      stripes: 1,
+      startDate: new Date("2019-02-20T00:00:00.000Z"),
+    },
+  })
+
+  const pedroJiuJitsuActivity = await prisma.studentActivity.create({
+    data: {
+      studentProfileId: pedroProfile.id,
+      activityCategory: "jiu-jitsu",
+      belt: "Azul",
+      stripes: 0,
+      startDate: new Date("2023-08-15T00:00:00.000Z"),
+    },
+  })
+
+  const joaoJiuJitsuActivity = await prisma.studentActivity.create({
+    data: {
+      studentProfileId: joaoProfile.id,
+      activityCategory: "jiu-jitsu",
+      belt: "Branca",
+      stripes: 4,
+      startDate: new Date("2023-09-01T00:00:00.000Z"),
+      status: "INACTIVE",
+    },
+  })
+
   const mariaJiuJitsu = await prisma.studentModality.create({
     data: {
       studentProfileId: mariaProfile.id,
+      studentActivityId: mariaJiuJitsuActivity.id,
       modalityId: jiuJitsu.id,
       belt: "Roxa",
       stripes: 3,
@@ -757,6 +834,7 @@ async function main() {
   const mariaKids = await prisma.studentModality.create({
     data: {
       studentProfileId: mariaProfile.id,
+      studentActivityId: mariaJiuJitsuActivity.id,
       modalityId: jiuJitsuKids.id,
       belt: "Branca",
       stripes: 1,
@@ -768,6 +846,7 @@ async function main() {
   const carlosJiuJitsu = await prisma.studentModality.create({
     data: {
       studentProfileId: carlosProfile.id,
+      studentActivityId: carlosJiuJitsuActivity.id,
       modalityId: jiuJitsu.id,
       belt: "Azul",
       stripes: 2,
@@ -778,6 +857,7 @@ async function main() {
   const anaJiuJitsu = await prisma.studentModality.create({
     data: {
       studentProfileId: anaProfile.id,
+      studentActivityId: anaJiuJitsuActivity.id,
       modalityId: jiuJitsu.id,
       belt: "Marrom",
       stripes: 1,
@@ -788,6 +868,7 @@ async function main() {
   const pedroJiuJitsu = await prisma.studentModality.create({
     data: {
       studentProfileId: pedroProfile.id,
+      studentActivityId: pedroJiuJitsuActivity.id,
       modalityId: jiuJitsu.id,
       belt: "Azul",
       stripes: 0,
@@ -798,6 +879,7 @@ async function main() {
   const joaoKids = await prisma.studentModality.create({
     data: {
       studentProfileId: joaoProfile.id,
+      studentActivityId: joaoJiuJitsuActivity.id,
       modalityId: jiuJitsuKids.id,
       belt: "Branca",
       stripes: 4,
@@ -860,7 +942,7 @@ async function main() {
   await prisma.studentGraduation.createMany({
     data: [
       {
-        studentModalityId: mariaJiuJitsu.id,
+        studentActivityId: mariaJiuJitsuActivity.id,
         fromBelt: "Azul",
         fromStripes: 3,
         toBelt: "Roxa",
@@ -869,7 +951,7 @@ async function main() {
         graduatedAt: new Date("2025-12-15T00:00:00.000Z"),
       },
       {
-        studentModalityId: carlosJiuJitsu.id,
+        studentActivityId: carlosJiuJitsuActivity.id,
         fromBelt: "Azul",
         fromStripes: 1,
         toBelt: "Azul",
@@ -878,7 +960,7 @@ async function main() {
         graduatedAt: new Date("2025-06-20T00:00:00.000Z"),
       },
       {
-        studentModalityId: anaJiuJitsu.id,
+        studentActivityId: anaJiuJitsuActivity.id,
         fromBelt: "Roxa",
         fromStripes: 4,
         toBelt: "Marrom",
@@ -887,7 +969,7 @@ async function main() {
         graduatedAt: new Date("2025-03-15T00:00:00.000Z"),
       },
       {
-        studentModalityId: mariaKids.id,
+        studentActivityId: mariaJiuJitsuActivity.id,
         fromBelt: "Branca",
         fromStripes: 0,
         toBelt: "Branca",
@@ -896,7 +978,7 @@ async function main() {
         graduatedAt: new Date("2025-02-25T00:00:00.000Z"),
       },
       {
-        studentModalityId: joaoKids.id,
+        studentActivityId: joaoJiuJitsuActivity.id,
         fromBelt: "Branca",
         fromStripes: 3,
         toBelt: "Branca",

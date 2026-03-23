@@ -143,6 +143,12 @@ Observacao importante de tenancy gerenciada:
 - `buildManagedTenantDomain` passou a centralizar esse comportamento;
 - em desenvolvimento local o padrao continua `slug.localhost`.
 
+Observacao importante de superficie da plataforma:
+
+- a administracao global da plataforma usa `app/api/platform/*`;
+- essa superficie aceita apenas `platform_admin`;
+- o ownership atual dessas operacoes fica em `apps/api/src/modules/platform`.
+
 ### Estado Alvo
 
 Todo acesso estrutural a persistencia deve ficar encapsulado em repositorios ou gateways equivalentes quando a complexidade do modulo justificar.
